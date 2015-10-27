@@ -61,13 +61,13 @@ public class MainActivityFragment extends Fragment {
                 return true;
             }
         });
-        myAdapter.add("Peli 1");
-        myAdapter.add("Peli 2");
-        myAdapter.add("Peli 3");
-        myAdapter.add("Peli 4");
-        myAdapter.add("Peli 5");
-        myAdapter.add("Peli 6");
-        myAdapter.add("Peli 7");
+        myAdapter.add("Peli per defecte 1");
+        myAdapter.add("Peli per defecte 2");
+        myAdapter.add("Peli per defecte 3");
+        myAdapter.add("Peli per defecte 4");
+        myAdapter.add("Peli per defecte 5");
+        myAdapter.add("Peli per defecte 6");
+        myAdapter.add("Peli per defecte 7");
 
         return fragmento;
     }
