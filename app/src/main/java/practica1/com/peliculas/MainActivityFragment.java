@@ -45,6 +45,12 @@ public class MainActivityFragment extends Fragment
     public MainActivityFragment() {
     }
 
+    public void onStart()
+    {
+        super.onStart();
+        refresh();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
