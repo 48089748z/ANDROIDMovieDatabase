@@ -3,6 +3,9 @@ package practica1.com.peliculas.Json;
 /**
  * Created by 48089748z on 26/10/15.
  */
+    import com.google.gson.annotations.Expose;
+    import com.google.gson.annotations.SerializedName;
+
     import java.util.ArrayList;
     import java.util.HashMap;
     import java.util.List;
@@ -10,11 +13,18 @@ package practica1.com.peliculas.Json;
 
     public class FilmService
     {
+        @SerializedName("page")
+        @Expose
         private Integer page;
+        @SerializedName("results")
+        @Expose
         private List<Result> results = new ArrayList<Result>();
+        @SerializedName("total_pages")
+        @Expose
         private Integer totalPages;
+        @SerializedName("total_results")
+        @Expose
         private Integer totalResults;
-        private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
         /**
          *
@@ -87,14 +97,4 @@ package practica1.com.peliculas.Json;
         public void setTotalResults(Integer totalResults) {
             this.totalResults = totalResults;
         }
-
-        public Map<String, Object> getAdditionalProperties() {
-            return this.additionalProperties;
-        }
-
-        public void setAdditionalProperty(String name, Object value) {
-            this.additionalProperties.put(name, value);
-        }
-
     }
-
