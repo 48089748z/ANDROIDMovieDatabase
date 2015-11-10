@@ -14,6 +14,7 @@ public class DetailsActivity extends AppCompatActivity
     TextView title;
     TextView popularity;
     TextView release;
+    TextView description;
     ImageView poster;
     final private String POSTER_BASE_URL = "http://image.tmdb.org/t/p/";
     final private String POSTER_SIZE = "w185";
@@ -26,12 +27,14 @@ public class DetailsActivity extends AppCompatActivity
         title = (TextView) findViewById(R.id.TVtitleDetails);
         popularity = (TextView) findViewById(R.id.TVratingDetails);
         release = (TextView) findViewById(R.id.TVreleaseDetails);
+        description = (TextView) findViewById(R.id.TVdescriptionDetails);
         poster = (ImageView) findViewById(R.id.IVposterDetails);
 
         Result selectedFilm = (Result) getIntent().getExtras().get("selectedFilm");
-        title.setText     ("Film:  "+selectedFilm.getTitle().toString().toUpperCase());
-        popularity.setText("Rating:  "+(oneDecimal.format(selectedFilm.getPopularity())+"%".toUpperCase()));
-        release.setText   ("Release:  "+selectedFilm.getReleaseDate());
+        title.setText     ("\n "+selectedFilm.getTitle().toString().toUpperCase());
+        popularity.setText("\n Rating:  "+(oneDecimal.format(selectedFilm.getPopularity())+"%".toUpperCase()));
+        release.setText   (" Release:  "+selectedFilm.getReleaseDate());
+        description.setText("\nDESCRIPTION:\n"+selectedFilm.getOverview());
         Picasso.with(this).load(POSTER_BASE_URL+POSTER_SIZE+selectedFilm.getPosterPath()).fit().into(poster);
     }
 }

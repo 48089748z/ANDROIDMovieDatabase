@@ -42,7 +42,7 @@ public class MovieDataBaseAdapter extends ArrayAdapter<Result>
             ImageView poster = (ImageView) convertView.findViewById(R.id.IVposter);
 
             titulo.setText("   "+peli.getTitle());
-            popularidad.setText("   "+String.valueOf(oneDecimal.format(peli.getPopularity()))+"%");
+            popularidad.setText("   Rating: "+String.valueOf(oneDecimal.format(peli.getPopularity()))+"%");
             release.setText("   "+peli.getReleaseDate());
             Picasso.with(getContext()).load(POSTER_BASE_URL+POSTER_SIZE+peli.getPosterPath()).fit().into(poster);
             return convertView;

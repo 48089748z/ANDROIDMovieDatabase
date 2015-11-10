@@ -17,32 +17,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
         android:id="@+id/TVtitle"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/IVposter"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:textSize="22dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
         android:id="@+id/TVrating"
         android:layout_below="@+id/TVtitle"
         android:layout_toRightOf="@+id/IVposter"
         android:layout_alignRight="@+id/TVtitle"
-        android:layout_alignEnd="@+id/TVtitle" />
+        android:layout_alignEnd="@+id/TVtitle"
+        android:textSize="22dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
         android:id="@+id/TVrelease"
         android:layout_below="@+id/TVrating"
         android:layout_toRightOf="@+id/IVposter"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:textSize="22dp" />
+
 </RelativeLayout>
