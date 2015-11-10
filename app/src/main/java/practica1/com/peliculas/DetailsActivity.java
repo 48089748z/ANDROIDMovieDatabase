@@ -24,14 +24,14 @@ public class DetailsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
         title = (TextView) findViewById(R.id.TVtitleDetails);
-        popularity = (TextView) findViewById(R.id.TVpopularityDetails);
+        popularity = (TextView) findViewById(R.id.TVratingDetails);
         release = (TextView) findViewById(R.id.TVreleaseDetails);
         poster = (ImageView) findViewById(R.id.IVposterDetails);
 
         Result selectedFilm = (Result) getIntent().getExtras().get("selectedFilm");
-        title.setText     (" Title->   "+selectedFilm.getTitle().toString().toUpperCase());
-        popularity.setText(" Ratings->   "+((oneDecimal.format(selectedFilm.getPopularity()))+"%").toString().toUpperCase());
-        release.setText   (" Release Date->   "+selectedFilm.getReleaseDate());
+        title.setText     ("Film:  "+selectedFilm.getTitle().toString().toUpperCase());
+        popularity.setText("Rating:  "+(oneDecimal.format(selectedFilm.getPopularity())+"%".toUpperCase()));
+        release.setText   ("Release:  "+selectedFilm.getReleaseDate());
         Picasso.with(this).load(POSTER_BASE_URL+POSTER_SIZE+selectedFilm.getPosterPath()).fit().into(poster);
     }
 }
