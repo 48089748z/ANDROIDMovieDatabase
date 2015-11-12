@@ -59,4 +59,5 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="title_activity_details_films">detailsFilms</string>
+    <string name="title_activity_details">DetailsActivity</string>
 </resources>

@@ -7,12 +7,12 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="FILMS"
+        android:label="Movies"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
             android:name=".MainActivity"
-            android:label="FILMS"
+            android:label="Movies"
             android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +24,14 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
-        <activity android:name=".DetailsActivity" >
+        <activity
+            android:name=".DetailsActivity"
+            android:label="Details"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="practica1.com.peliculas.MainActivity" />
         </activity>
     </application>
 

@@ -14,9 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.GridView;
 import android.widget.ListView;
-import android.widget.TextView;
+
 import java.util.ArrayList;
+import java.util.List;
 
 import practica1.com.peliculas.Json.FilmService;
 import practica1.com.peliculas.Json.Result;
@@ -34,10 +36,11 @@ import retrofit.http.Query;
 public class MainActivityFragment extends Fragment
 {
     private MovieService service;
-    private MovieDataBaseAdapter myAdapter;
+    private FilmGridViewAdapter GridViewAdapter;
+    private FilmListViewAdapter ListViewAdapter;
     private ArrayList<Result> items;
+    private GridView myGrid;
     private ListView myList;
-    private TextView myFilms;
     private Retrofit retrofit;
     final private String BASE_URL = "http://api.themoviedb.org/3/movie/";
     final private String APY_KEY = "db94687026da4c4526fdd35d2e7b2f10";
@@ -54,29 +57,36 @@ public class MainActivityFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         setHasOptionsMenu(true); //Li indiquem que el fragment te Menu
-        View fragmento = inflater.inflate(R.layout.fragment_main, container, false);
-
+        View mainFragment = inflater.inflate(R.layout.fragment_main, container, false);
         retrofit = new Retrofit.Builder()  //Creem el Retrofit, per ferho haurem de ficar les linees corresponents al build.gradle (Module: app)
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         service = retrofit.create(MovieService.class);
         items = new ArrayList<>();
-        myFilms = (TextView) fragmento.findViewById(R.id.TVmyFilms); //Asignem variables amb les ids corresponents
-        myList = (ListView) fragmento.findViewById(R.id.LVmyList);
-        myAdapter = new MovieDataBaseAdapter(getContext(), 0, items); //Creem un adaptador per al ListView
-        myList.setAdapter(myAdapter); //Afegim el adaptador al ListView
-        myList.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
+        myGrid = (GridView) mainFragment.findViewById(R.id.GVmyGrid);
+        GridViewAdapter = new FilmGridViewAdapter(getContext(), 0, items); //Creem un adaptador per al ListView
+        myGrid.setAdapter(GridViewAdapter); //Afegim el adaptador al ListView
+        myGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Result selectedFilm = (Result) parent.getItemAtPosition(position);
                 Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
                 detailsActivity.putExtra("selectedFilm", selectedFilm);
                 startActivity(detailsActivity);
             }
         });
-        return fragmento;
+        myList = (ListView) mainFragment.findViewById(R.id.LVmyList);
+        ListViewAdapter = new FilmListViewAdapter(getContext(), 0, items);
+        myList.setAdapter(ListViewAdapter);
+        myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Result selectedFilm = (Result) parent.getItemAtPosition(position);
+                Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
+                detailsActivity.putExtra("selectedFilm", selectedFilm);
+                startActivity(detailsActivity);
+            }
+        });
+        return mainFragment;
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
@@ -93,6 +103,17 @@ public class MainActivityFragment extends Fragment
             refresh(); //Quan clickem refresh al Menu s'executara aquest metode.
             return true;
         }
+        if (id == R.id.action_gridview)
+        {
+            myList.setVisibility(View.GONE);
+            myGrid.setVisibility(View.VISIBLE);
+        }
+        if (id == R.id.action_listview)
+        {
+            myList.setVisibility(View.VISIBLE);
+            myGrid.setVisibility(View.GONE);
+
+        }
         return super.onOptionsItemSelected(item);
     }
     public void refresh()
@@ -102,6 +123,7 @@ public class MainActivityFragment extends Fragment
         {
             case "0":
             {
+
                 refreshPopulars();
                 break;
             }
@@ -122,8 +144,8 @@ public class MainActivityFragment extends Fragment
             public void onResponse(Response<FilmService> response, Retrofit retrofit)
             {
                 FilmService resultado = response.body();
-                myAdapter.clear(); //Borrem el contingut del ListView;
-                myAdapter.addAll(resultado.getResults()); //Fiquem tot el contingut del arrayList que guarda els titols i puntuacions que hem extret del Json al ListView
+                GridViewAdapter.clear(); //Borrem el contingut del ListView;
+                GridViewAdapter.addAll(resultado.getResults()); //Fiquem tot el contingut del arrayList que guarda els titols i puntuacions que hem extret del Json al ListView
             }
             public void onFailure(Throwable t) {}});
     }
@@ -138,8 +160,8 @@ public class MainActivityFragment extends Fragment
             public void onResponse(Response<FilmService> response, Retrofit retrofit)
             {
                 FilmService resultado = response.body();
-                myAdapter.clear(); //Borrem el contingut del ListView
-                myAdapter.addAll(resultado.getResults()); //Fiquem tot el contingut del arrayList que guarda els titols i puntuacions que hem extret del Json al ListView
+                GridViewAdapter.clear(); //Borrem el contingut del ListView
+                GridViewAdapter.addAll(resultado.getResults()); //Fiquem tot el contingut del arrayList que guarda els titols i puntuacions que hem extret del Json al ListView
             }
             public void onFailure(Throwable t) {}});
     }
