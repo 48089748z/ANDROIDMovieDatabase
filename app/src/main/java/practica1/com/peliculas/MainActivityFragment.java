@@ -7,6 +7,7 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,9 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 import retrofit.http.GET;
+import retrofit.http.Multipart;
+import retrofit.http.PUT;
+import retrofit.http.Part;
 import retrofit.http.Query;
 
 /**
@@ -44,8 +49,12 @@ public class MainActivityFragment extends Fragment
     private Retrofit retrofit;
     final private String BASE_URL = "http://api.themoviedb.org/3/movie/";
     final private String APY_KEY = "db94687026da4c4526fdd35d2e7b2f10";
+    public static Integer PAGE = 1;
+
+    //FULL LINK POPULARS PAGE 2:     http://api.themoviedb.org/3/movie/popular?api_key=db94687026da4c4526fdd35d2e7b2f10&page=2
+
     //FULL LINK POPULARS:     http://api.themoviedb.org/3/movie/popular?api_key=db94687026da4c4526fdd35d2e7b2f10
-    //FULL LINK BEST RATED:   http://api.themoviedb.org/3/movie/top_rated?api_key=db94687026da4c4526fdd35d2e7b2f10
+    //FULL LINK TOP RATED LINK:   http://api.themoviedb.org/3/movie/top_rated?api_key=db94687026da4c4526fdd35d2e7b2f10
 
     public MainActivityFragment(){}
     public void onStart()
@@ -64,6 +73,7 @@ public class MainActivityFragment extends Fragment
                 .build();
         service = retrofit.create(MovieService.class);
         items = new ArrayList<>();
+
         myGrid = (GridView) mainFragment.findViewById(R.id.GVmyGrid);
         GridViewAdapter = new FilmGridViewAdapter(getContext(), 0, items); //Creem un adaptador per al ListView
         myGrid.setAdapter(GridViewAdapter); //Afegim el adaptador al ListView
@@ -75,6 +85,7 @@ public class MainActivityFragment extends Fragment
                 startActivity(detailsActivity);
             }
         });
+
         myList = (ListView) mainFragment.findViewById(R.id.LVmyList);
         ListViewAdapter = new FilmListViewAdapter(getContext(), 0, items);
         myList.setAdapter(ListViewAdapter);
@@ -107,36 +118,41 @@ public class MainActivityFragment extends Fragment
         {
             myList.setVisibility(View.GONE);
             myGrid.setVisibility(View.VISIBLE);
+            return true;
         }
         if (id == R.id.action_listview)
         {
             myList.setVisibility(View.VISIBLE);
             myGrid.setVisibility(View.GONE);
+            return true;
 
         }
         return super.onOptionsItemSelected(item);
     }
+
     public void refresh()
     {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        switch (preferences.getString("filmsToShow" ,"0"))
+        switch (preferences.getString("filmsToShow", "0"))
         {
             case "0":
             {
-
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Popular Films");
                 refreshPopulars();
                 break;
             }
             case "1":
             {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Top Rated Films");
                 refreshTopRated();
                 break;
             }
         }
+
     }
     public void refreshPopulars()
     {
-        Call<FilmService> call = service.getPopulars(APY_KEY); //Fem un call en segon pla
+        Call<FilmService> call = service.getPopulars(APY_KEY, PAGE); //Fem un call en segon pla
         call.enqueue(new Callback<FilmService>()
         {
             @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -144,15 +160,17 @@ public class MainActivityFragment extends Fragment
             public void onResponse(Response<FilmService> response, Retrofit retrofit)
             {
                 FilmService resultado = response.body();
-                GridViewAdapter.clear(); //Borrem el contingut del ListView;
-                GridViewAdapter.addAll(resultado.getResults()); //Fiquem tot el contingut del arrayList que guarda els titols i puntuacions que hem extret del Json al ListView
+                GridViewAdapter.clear();
+                GridViewAdapter.addAll(resultado.getResults());
+                ListViewAdapter.clear();
+                ListViewAdapter.addAll(resultado.getResults());
             }
             public void onFailure(Throwable t) {}});
     }
 
     public void refreshTopRated()
     {
-        Call<FilmService> call = service.getTopRated(APY_KEY); //Fem un call en segon pla
+        Call<FilmService> call = service.getTopRated(APY_KEY, PAGE); //Fem un call en segon pla
         call.enqueue(new Callback<FilmService>()
         {
             @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -160,8 +178,10 @@ public class MainActivityFragment extends Fragment
             public void onResponse(Response<FilmService> response, Retrofit retrofit)
             {
                 FilmService resultado = response.body();
-                GridViewAdapter.clear(); //Borrem el contingut del ListView
-                GridViewAdapter.addAll(resultado.getResults()); //Fiquem tot el contingut del arrayList que guarda els titols i puntuacions que hem extret del Json al ListView
+                GridViewAdapter.clear();
+                GridViewAdapter.addAll(resultado.getResults());
+                ListViewAdapter.clear();
+                ListViewAdapter.addAll(resultado.getResults());
             }
             public void onFailure(Throwable t) {}});
     }
@@ -169,11 +189,13 @@ public class MainActivityFragment extends Fragment
     {
         @GET("popular") //Segona part de la URL que conte el Json
         Call<FilmService> getPopulars(
-                @Query ("api_key") String api_key);
+                @Query("api_key") String api_key,
+                @Query("page") Integer page);
 
         @GET("top_rated") //Segona part de la URL que conte el Json
         Call<FilmService> getTopRated(
-                @Query ("api_key") String api_key);
+                @Query ("api_key") String api_key,
+                @Query ("page") Integer page);
     }
 }
 
