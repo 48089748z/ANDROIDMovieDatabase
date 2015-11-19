@@ -1,0 +1,13 @@
+{
+  "syntaxVersion": 3,
+  "projectPackageId": "practica1.com.peliculas",
+  "authority": "practica1.com.peliculas.provider",
+  "providerJavaPackage": "practica1.com.peliculas.provider",
+  "providerClassName": "MoviesProvider",
+  "sqliteOpenHelperClassName": "MoviesSQLiteOpenHelper",
+  "sqliteOpenHelperCallbacksClassName": "MoviesSQLiteOpenHelperCallbacks",
+  "databaseFileName": "movies.db",
+  "databaseVersion": 1,
+  "enableForeignKeys": true,
+  "useAnnotations": true
+}
