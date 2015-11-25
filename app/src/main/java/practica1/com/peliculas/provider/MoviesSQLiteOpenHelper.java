@@ -10,7 +10,8 @@ import android.os.Build;
 import android.util.Log;
 
 import practica1.com.peliculas.BuildConfig;
-import practica1.com.peliculas.provider.movie.MovieColumns;
+import practica1.com.peliculas.provider.populars.PopularsColumns;
+import practica1.com.peliculas.provider.toprated.TopratedColumns;
 
 public class MoviesSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = MoviesSQLiteOpenHelper.class.getSimpleName();
@@ -22,14 +23,24 @@ public class MoviesSQLiteOpenHelper extends SQLiteOpenHelper {
     private final MoviesSQLiteOpenHelperCallbacks mOpenHelperCallbacks;
 
     // @formatter:off
-    public static final String SQL_CREATE_TABLE_MOVIE = "CREATE TABLE IF NOT EXISTS "
-            + MovieColumns.TABLE_NAME + " ( "
-            + MovieColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + MovieColumns.MOVIE_TITLE + " TEXT, "
-            + MovieColumns.MOVIE_RELEASE_DATE + " TEXT, "
-            + MovieColumns.MOVIE_POPULARITY + " TEXT, "
-            + MovieColumns.MOVIE_DESCRIPTION + " TEXT, "
-            + MovieColumns.MOVIE_IMAGE_URL + " TEXT "
+    public static final String SQL_CREATE_TABLE_POPULARS = "CREATE TABLE IF NOT EXISTS "
+            + PopularsColumns.TABLE_NAME + " ( "
+            + PopularsColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + PopularsColumns.MOVIE_TITLE + " TEXT, "
+            + PopularsColumns.MOVIE_RELEASE_DATE + " TEXT, "
+            + PopularsColumns.MOVIE_POPULARITY + " TEXT, "
+            + PopularsColumns.MOVIE_DESCRIPTION + " TEXT, "
+            + PopularsColumns.MOVIE_IMAGE_URL + " TEXT "
+            + " );";
+
+    public static final String SQL_CREATE_TABLE_TOPRATED = "CREATE TABLE IF NOT EXISTS "
+            + TopratedColumns.TABLE_NAME + " ( "
+            + TopratedColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + TopratedColumns.MOVIE_TITLE + " TEXT, "
+            + TopratedColumns.MOVIE_RELEASE_DATE + " TEXT, "
+            + TopratedColumns.MOVIE_POPULARITY + " TEXT, "
+            + TopratedColumns.MOVIE_DESCRIPTION + " TEXT, "
+            + TopratedColumns.MOVIE_IMAGE_URL + " TEXT "
             + " );";
 
     // @formatter:on
@@ -86,7 +97,8 @@ public class MoviesSQLiteOpenHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         if (BuildConfig.DEBUG) Log.d(TAG, "onCreate");
         mOpenHelperCallbacks.onPreCreate(mContext, db);
-        db.execSQL(SQL_CREATE_TABLE_MOVIE);
+        db.execSQL(SQL_CREATE_TABLE_POPULARS);
+        db.execSQL(SQL_CREATE_TABLE_TOPRATED);
         mOpenHelperCallbacks.onPostCreate(mContext, db);
     }
 

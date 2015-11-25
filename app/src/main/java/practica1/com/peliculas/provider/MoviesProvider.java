@@ -12,7 +12,8 @@ import android.util.Log;
 
 import practica1.com.peliculas.BuildConfig;
 import practica1.com.peliculas.provider.base.BaseContentProvider;
-import practica1.com.peliculas.provider.movie.MovieColumns;
+import practica1.com.peliculas.provider.populars.PopularsColumns;
+import practica1.com.peliculas.provider.toprated.TopratedColumns;
 
 public class MoviesProvider extends BaseContentProvider {
     private static final String TAG = MoviesProvider.class.getSimpleName();
@@ -25,16 +26,21 @@ public class MoviesProvider extends BaseContentProvider {
     public static final String AUTHORITY = "practica1.com.peliculas.provider";
     public static final String CONTENT_URI_BASE = "content://" + AUTHORITY;
 
-    private static final int URI_TYPE_MOVIE = 0;
-    private static final int URI_TYPE_MOVIE_ID = 1;
+    private static final int URI_TYPE_POPULARS = 0;
+    private static final int URI_TYPE_POPULARS_ID = 1;
+
+    private static final int URI_TYPE_TOPRATED = 2;
+    private static final int URI_TYPE_TOPRATED_ID = 3;
 
 
 
     private static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        URI_MATCHER.addURI(AUTHORITY, MovieColumns.TABLE_NAME, URI_TYPE_MOVIE);
-        URI_MATCHER.addURI(AUTHORITY, MovieColumns.TABLE_NAME + "/#", URI_TYPE_MOVIE_ID);
+        URI_MATCHER.addURI(AUTHORITY, PopularsColumns.TABLE_NAME, URI_TYPE_POPULARS);
+        URI_MATCHER.addURI(AUTHORITY, PopularsColumns.TABLE_NAME + "/#", URI_TYPE_POPULARS_ID);
+        URI_MATCHER.addURI(AUTHORITY, TopratedColumns.TABLE_NAME, URI_TYPE_TOPRATED);
+        URI_MATCHER.addURI(AUTHORITY, TopratedColumns.TABLE_NAME + "/#", URI_TYPE_TOPRATED_ID);
     }
 
     @Override
@@ -51,10 +57,15 @@ public class MoviesProvider extends BaseContentProvider {
     public String getType(Uri uri) {
         int match = URI_MATCHER.match(uri);
         switch (match) {
-            case URI_TYPE_MOVIE:
-                return TYPE_CURSOR_DIR + MovieColumns.TABLE_NAME;
-            case URI_TYPE_MOVIE_ID:
-                return TYPE_CURSOR_ITEM + MovieColumns.TABLE_NAME;
+            case URI_TYPE_POPULARS:
+                return TYPE_CURSOR_DIR + PopularsColumns.TABLE_NAME;
+            case URI_TYPE_POPULARS_ID:
+                return TYPE_CURSOR_ITEM + PopularsColumns.TABLE_NAME;
+
+            case URI_TYPE_TOPRATED:
+                return TYPE_CURSOR_DIR + TopratedColumns.TABLE_NAME;
+            case URI_TYPE_TOPRATED_ID:
+                return TYPE_CURSOR_ITEM + TopratedColumns.TABLE_NAME;
 
         }
         return null;
@@ -98,12 +109,20 @@ public class MoviesProvider extends BaseContentProvider {
         String id = null;
         int matchedId = URI_MATCHER.match(uri);
         switch (matchedId) {
-            case URI_TYPE_MOVIE:
-            case URI_TYPE_MOVIE_ID:
-                res.table = MovieColumns.TABLE_NAME;
-                res.idColumn = MovieColumns._ID;
-                res.tablesWithJoins = MovieColumns.TABLE_NAME;
-                res.orderBy = MovieColumns.DEFAULT_ORDER;
+            case URI_TYPE_POPULARS:
+            case URI_TYPE_POPULARS_ID:
+                res.table = PopularsColumns.TABLE_NAME;
+                res.idColumn = PopularsColumns._ID;
+                res.tablesWithJoins = PopularsColumns.TABLE_NAME;
+                res.orderBy = PopularsColumns.DEFAULT_ORDER;
+                break;
+
+            case URI_TYPE_TOPRATED:
+            case URI_TYPE_TOPRATED_ID:
+                res.table = TopratedColumns.TABLE_NAME;
+                res.idColumn = TopratedColumns._ID;
+                res.tablesWithJoins = TopratedColumns.TABLE_NAME;
+                res.orderBy = TopratedColumns.DEFAULT_ORDER;
                 break;
 
             default:
@@ -111,14 +130,15 @@ public class MoviesProvider extends BaseContentProvider {
         }
 
         switch (matchedId) {
-            case URI_TYPE_MOVIE_ID:
+            case URI_TYPE_POPULARS_ID:
+            case URI_TYPE_TOPRATED_ID:
                 id = uri.getLastPathSegment();
         }
         if (id != null) {
             if (selection != null) {
-                res.selection = res.table + "" + res.idColumn + "=" + id + " and (" + selection + ")";
+                res.selection = res.table + "." + res.idColumn + "=" + id + " and (" + selection + ")";
             } else {
-                res.selection = res.table + "" + res.idColumn + "=" + id;
+                res.selection = res.table + "." + res.idColumn + "=" + id;
             }
         } else {
             res.selection = selection;

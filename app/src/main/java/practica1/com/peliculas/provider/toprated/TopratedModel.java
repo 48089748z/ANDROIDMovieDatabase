@@ -1,4 +1,4 @@
-package practica1.com.peliculas.provider.movie;
+package practica1.com.peliculas.provider.toprated;
 
 import practica1.com.peliculas.provider.base.BaseModel;
 
@@ -8,9 +8,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 /**
- * Just a movie
+ * Table of Top Rated Movies
  */
-public interface MovieModel extends BaseModel {
+public interface TopratedModel extends BaseModel {
 
     /**
      * Get the {@code movie_title} value.

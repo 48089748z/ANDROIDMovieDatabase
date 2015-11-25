@@ -4,11 +4,14 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,13 +23,13 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 
 import practica1.com.peliculas.Json.FilmService;
 import practica1.com.peliculas.Json.Result;
-import practica1.com.peliculas.provider.movie.MovieColumns;
-import practica1.com.peliculas.provider.movie.MovieContentValues;
+import practica1.com.peliculas.provider.populars.PopularsColumns;
+import practica1.com.peliculas.provider.populars.PopularsContentValues;
+import practica1.com.peliculas.provider.toprated.TopratedColumns;
+import practica1.com.peliculas.provider.toprated.TopratedContentValues;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
@@ -38,15 +41,15 @@ import retrofit.http.Query;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment
+public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>
 {
     //private FilmGridViewAdapter GridViewAdapter;
     //private FilmListViewAdapter ListViewAdapter;
     //private ArrayList<Result> items = new ArrayList<>();
+    String tabla = "Popular";
     private DBGridViewAdapter GridViewDBAdapter;
     private DBListViewAdapter ListViewDBAdapter;
     private MovieService service;
-    private Cursor cursor;
     private GridView myGrid;
     private ListView myList;
     private Retrofit retrofit;
@@ -61,7 +64,28 @@ public class MainActivityFragment extends Fragment
     public void onStart()
     {
         super.onStart();
-        refresh();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        switch (preferences.getString("filmsToShow", "0"))
+        {
+            case "0":
+            {
+                ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Popular Films");
+                getLoaderManager().restartLoader(0, null, this);
+                GridViewDBAdapter.setFrom(new String[]{PopularsColumns.MOVIE_TITLE, PopularsColumns.MOVIE_IMAGE_URL});
+                ListViewDBAdapter.setFrom(new String[] {PopularsColumns.MOVIE_TITLE,PopularsColumns.MOVIE_POPULARITY, PopularsColumns.MOVIE_RELEASE_DATE, PopularsColumns.MOVIE_IMAGE_URL });
+                tabla = "Popular";
+                break;
+            }
+            case "1":
+            {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Top Rated Films");
+                getLoaderManager().restartLoader(0, null, this);
+                GridViewDBAdapter.setFrom(new String[]{TopratedColumns.MOVIE_TITLE, TopratedColumns.MOVIE_IMAGE_URL});
+                ListViewDBAdapter.setFrom(new String[] {TopratedColumns.MOVIE_TITLE,TopratedColumns.MOVIE_POPULARITY, TopratedColumns.MOVIE_RELEASE_DATE, TopratedColumns.MOVIE_IMAGE_URL });
+                tabla = "TopRated";
+                break;
+            }
+        }
     }
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
@@ -69,17 +93,17 @@ public class MainActivityFragment extends Fragment
     {
         setHasOptionsMenu(true); //Li indiquem que el fragment te Menu
         View mainFragment = inflater.inflate(R.layout.fragment_main, container, false);
-        createRetrofit();
 
+        getLoaderManager().initLoader(0, null, this);
+        createRetrofit();
 
         //GridViewAdapter = new FilmGridViewAdapter(getContext(), 0, items); //Creem un adaptador per al ListView
         //myGrid.setAdapter(GridViewAdapter); //Afegim el adaptador al ListView
         myGrid = (GridView) mainFragment.findViewById(R.id.GVmyGrid);
         myGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Result selectedFilm = (Result) parent.getItemAtPosition(position);
                 Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
-                detailsActivity.putExtra("cursor", (Serializable) cursor);
+                detailsActivity.putExtra("cursor_id", id);
                 startActivity(detailsActivity);}});
 
         //ListViewAdapter = new FilmListViewAdapter(getContext(), 0, items);
@@ -87,16 +111,17 @@ public class MainActivityFragment extends Fragment
         myList = (ListView) mainFragment.findViewById(R.id.LVmyList);
         myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Result selectedFilm = (Result) parent.getItemAtPosition(position);
                 Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
-                detailsActivity.putExtra("cursor", (Serializable) cursor);
-                startActivity(detailsActivity);}});
+                detailsActivity.putExtra("cursor_id", id);
+                startActivity(detailsActivity);
+            }
+        });
 
         GridViewDBAdapter = new DBGridViewAdapter(
                 getContext(),
                 R.layout.gridview_layout,
                 null,
-                new String[] { MovieColumns.MOVIE_TITLE, MovieColumns.MOVIE_IMAGE_URL },
+                new String[] { PopularsColumns.MOVIE_TITLE, PopularsColumns.MOVIE_IMAGE_URL },
                 new int[] { R.id.TVgridViewTitle, R.id.IVposter },
                 0);
 
@@ -104,7 +129,7 @@ public class MainActivityFragment extends Fragment
                 getContext(),
                 R.layout.gridview_layout,
                 null,
-                new String[] { MovieColumns.MOVIE_TITLE,MovieColumns.MOVIE_POPULARITY, MovieColumns.MOVIE_RELEASE_DATE, MovieColumns.MOVIE_IMAGE_URL },
+                new String[] { PopularsColumns.MOVIE_TITLE,PopularsColumns.MOVIE_POPULARITY, PopularsColumns.MOVIE_RELEASE_DATE, PopularsColumns.MOVIE_IMAGE_URL },
                 new int[] { R.id.TVtitle, R.id.TVrating, R.id.TVrelease, R.id.IVposter },
                 0);
 
@@ -112,27 +137,22 @@ public class MainActivityFragment extends Fragment
         myList.setAdapter(ListViewDBAdapter);
         return mainFragment;
     }
-
     public void refresh()
     {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        switch (preferences.getString("filmsToShow", "0"))
-        {
-            case "0":
-            {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Popular Films");
-                downloadPopulars();
-                break;
-            }
-            case "1":
-            {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Top Rated Films");
-                downloadTopRated();
-                break;
-            }
-        }
+        //BORRAMOS TODA LA BASE DE DATOS Y DESCARGAMOS LA INFORMACION DE INTERNET ACTUALIZADA
+        getContext().getContentResolver().delete(
+                PopularsColumns.CONTENT_URI,
+                null,
+                null);
+        getContext().getContentResolver().delete(
+                TopratedColumns.CONTENT_URI,
+                null,
+                null);
 
+        UpdateAllMoviesFromInternet uamfi = new UpdateAllMoviesFromInternet();
+        uamfi.execute();
     }
+
     public void downloadPopulars()
     {
         Call<FilmService> call = service.getPopulars(APY_KEY, PAGE); //Fem un call en segon pla
@@ -144,34 +164,17 @@ public class MainActivityFragment extends Fragment
                 FilmService filmsController = response.body();
                 for (Result movie : filmsController.getResults())
                 {
-                    MovieContentValues values = new MovieContentValues();
+                    PopularsContentValues values = new PopularsContentValues();
                     values.putMovieTitle(movie.getTitle().toString());
                     values.putMovieReleaseDate(movie.getReleaseDate().toString());
                     values.putMoviePopularity(movie.getPopularity().toString());
                     values.putMovieDescription(movie.getOverview());
                     values.putMovieImageUrl(movie.getPosterPath());
-                    getContext().getContentResolver().insert(MovieColumns.CONTENT_URI, values.values());
+                    getContext().getContentResolver().insert(PopularsColumns.CONTENT_URI, values.values());
                 }
-                showMovies();
             }
-            public void onFailure(Throwable t) {
-                showMovies();
-            }
+            public void onFailure(Throwable t) {}
         });
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void showMovies()
-    {
-         cursor = getContext().getContentResolver().query(
-                MovieColumns.CONTENT_URI,
-                null,
-                null,
-                null,
-                "_id"
-        );
-        GridViewDBAdapter.swapCursor(cursor);
-        ListViewDBAdapter.swapCursor(cursor);
     }
 
     public void downloadTopRated()
@@ -180,25 +183,20 @@ public class MainActivityFragment extends Fragment
         call.enqueue(new Callback<FilmService>() {
             @TargetApi(Build.VERSION_CODES.HONEYCOMB)
             @Override
-            public void onResponse(Response<FilmService> response, Retrofit retrofit)
-            {
+            public void onResponse(Response<FilmService> response, Retrofit retrofit) {
                 FilmService filmsController = response.body();
                 for (Result movie : filmsController.getResults())
                 {
-                    MovieContentValues values = new MovieContentValues();
+                    TopratedContentValues values = new TopratedContentValues();
                     values.putMovieTitle(movie.getTitle().toString());
                     values.putMovieReleaseDate(movie.getReleaseDate().toString());
                     values.putMoviePopularity(movie.getPopularity().toString());
                     values.putMovieDescription(movie.getOverview());
                     values.putMovieImageUrl(movie.getPosterPath());
-                    getContext().getContentResolver().insert(MovieColumns.CONTENT_URI, values.values());
+                    getContext().getContentResolver().insert(TopratedColumns.CONTENT_URI, values.values());
                 }
-                showMovies();
             }
-
-            public void onFailure(Throwable t) {
-                showMovies();
-            }
+            public void onFailure(Throwable t) {}
         });
     }
     public void createRetrofit()
@@ -209,6 +207,47 @@ public class MainActivityFragment extends Fragment
                 .build();
         service = retrofit.create(MovieService.class);
     }
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args)
+    {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        switch (preferences.getString("filmsToShow", "0"))
+        {
+            case "0":
+            {
+                return new CursorLoader(getContext(), //CONDICION POPULARES
+                        PopularsColumns.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        "_id");
+            }
+            case "1":
+            {
+                return new CursorLoader(getContext(), //CONDICION TOP RATED
+                        TopratedColumns.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        "_id");
+            }
+            default:  return null;
+        }
+    }
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data)
+    {
+        GridViewDBAdapter.swapCursor(data);
+        ListViewDBAdapter.swapCursor(data);
+    }
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        GridViewDBAdapter.swapCursor(null);
+        ListViewDBAdapter.swapCursor(null);
+    }
+
     public interface MovieService
     {
         @GET("popular") //Segona part de la URL que conte el Json
@@ -249,5 +288,16 @@ public class MainActivityFragment extends Fragment
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    class UpdateAllMoviesFromInternet extends AsyncTask
+    {
+        @Override
+        protected Object doInBackground(Object[] params)
+        {
+            downloadPopulars();
+            downloadTopRated();
+            return null;
+        }
     }
 }

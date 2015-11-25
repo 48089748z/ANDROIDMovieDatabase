@@ -140,7 +140,7 @@ public abstract class BaseContentProvider extends ContentProvider {
         String[] res = new String[projection.length];
         for (int i = 0; i < projection.length; i++) {
             if (projection[i].equals(idColumn)) {
-                res[i] = tableName + "" + idColumn + " AS " + BaseColumns._ID;
+                res[i] = tableName + "." + idColumn + " AS " + BaseColumns._ID;
             } else {
                 res[i] = projection[i];
             }

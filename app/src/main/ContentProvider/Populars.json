@@ -1,5 +1,5 @@
 {
-  "documentation": "Just a movie",
+  "documentation": "Table of Popular Movies",
   "fields": [
     {
       "name": "movie_title",

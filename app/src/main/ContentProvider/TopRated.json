@@ -1,0 +1,25 @@
+{
+  "documentation": "Table of Top Rated Movies",
+  "fields": [
+    {
+      "name": "movie_title",
+      "type": "String"
+    },
+    {
+      "name": "movie_release_date",
+      "type": "String"
+    },
+    {
+      "name": "movie_popularity",
+      "type": "String"
+    },
+    {
+      "name": "movie_description",
+      "type": "String"
+    },
+    {
+      "name": "movie_image_url",
+      "type": "String"
+    }
+  ]
+}
