@@ -23,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
 
+import java.io.IOException;
 
 import practica1.com.peliculas.Json.FilmService;
 import practica1.com.peliculas.Json.Result;
@@ -31,7 +32,6 @@ import practica1.com.peliculas.provider.populars.PopularsContentValues;
 import practica1.com.peliculas.provider.toprated.TopratedColumns;
 import practica1.com.peliculas.provider.toprated.TopratedContentValues;
 import retrofit.Call;
-import retrofit.Callback;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
@@ -46,16 +46,16 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     //private FilmGridViewAdapter GridViewAdapter;
     //private FilmListViewAdapter ListViewAdapter;
     //private ArrayList<Result> items = new ArrayList<>();
-    String tabla = "Popular";
+    final private String BASE_URL = "http://api.themoviedb.org/3/movie/";
+    final private String APY_KEY = "db94687026da4c4526fdd35d2e7b2f10";
     private DBGridViewAdapter GridViewDBAdapter;
     private DBListViewAdapter ListViewDBAdapter;
     private MovieService service;
     private GridView myGrid;
     private ListView myList;
     private Retrofit retrofit;
-    final private String BASE_URL = "http://api.themoviedb.org/3/movie/";
-    final private String APY_KEY = "db94687026da4c4526fdd35d2e7b2f10";
-    public static Integer PAGE = 1;
+    private Integer PAGE = 1;
+    private SharedPreferences preferences;
     //FULL LINK POPULARS PAGE 2:     http://api.themoviedb.org/3/movie/popular?api_key=db94687026da4c4526fdd35d2e7b2f10&page=2
     //FULL LINK POPULARS:     http://api.themoviedb.org/3/movie/popular?api_key=db94687026da4c4526fdd35d2e7b2f10
     //FULL LINK TOP RATED LINK:   http://api.themoviedb.org/3/movie/top_rated?api_key=db94687026da4c4526fdd35d2e7b2f10
@@ -64,7 +64,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onStart()
     {
         super.onStart();
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         switch (preferences.getString("filmsToShow", "0"))
         {
             case "0":
@@ -73,7 +73,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 getLoaderManager().restartLoader(0, null, this);
                 GridViewDBAdapter.setFrom(new String[]{PopularsColumns.MOVIE_TITLE, PopularsColumns.MOVIE_IMAGE_URL});
                 ListViewDBAdapter.setFrom(new String[] {PopularsColumns.MOVIE_TITLE,PopularsColumns.MOVIE_POPULARITY, PopularsColumns.MOVIE_RELEASE_DATE, PopularsColumns.MOVIE_IMAGE_URL });
-                tabla = "Popular";
                 break;
             }
             case "1":
@@ -82,7 +81,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 getLoaderManager().restartLoader(0, null, this);
                 GridViewDBAdapter.setFrom(new String[]{TopratedColumns.MOVIE_TITLE, TopratedColumns.MOVIE_IMAGE_URL});
                 ListViewDBAdapter.setFrom(new String[] {TopratedColumns.MOVIE_TITLE,TopratedColumns.MOVIE_POPULARITY, TopratedColumns.MOVIE_RELEASE_DATE, TopratedColumns.MOVIE_IMAGE_URL });
-                tabla = "TopRated";
                 break;
             }
         }
@@ -102,6 +100,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         myGrid = (GridView) mainFragment.findViewById(R.id.GVmyGrid);
         myGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
                 detailsActivity.putExtra("cursor_id", id);
                 startActivity(detailsActivity);}});
@@ -152,53 +151,50 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         UpdateAllMoviesFromInternet uamfi = new UpdateAllMoviesFromInternet();
         uamfi.execute();
     }
-
-    public void downloadPopulars()
+    class UpdateAllMoviesFromInternet extends AsyncTask
     {
-        Call<FilmService> call = service.getPopulars(APY_KEY, PAGE); //Fem un call en segon pla
-        call.enqueue(new Callback<FilmService>() {
-            @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-            @Override
-            public void onResponse(Response<FilmService> response, Retrofit retrofit)
+        @Override
+        protected Object doInBackground(Object[] params)
+        {
+            downloadMovies();
+            return null;
+        }
+    }
+    public void downloadMovies()
+    {
+        try
+        {
+            Call<FilmService> call1 = service.getPopulars(APY_KEY, PAGE);
+            Response<FilmService> response1 = call1.execute();
+            FilmService filmsController1 = response1.body();
+            for (Result movie : filmsController1.getResults())
             {
-                FilmService filmsController = response.body();
-                for (Result movie : filmsController.getResults())
-                {
-                    PopularsContentValues values = new PopularsContentValues();
-                    values.putMovieTitle(movie.getTitle().toString());
-                    values.putMovieReleaseDate(movie.getReleaseDate().toString());
-                    values.putMoviePopularity(movie.getPopularity().toString());
-                    values.putMovieDescription(movie.getOverview());
-                    values.putMovieImageUrl(movie.getPosterPath());
-                    getContext().getContentResolver().insert(PopularsColumns.CONTENT_URI, values.values());
-                }
+                PopularsContentValues values = new PopularsContentValues();
+                values.putMovieTitle(movie.getTitle().toString());
+                values.putMovieReleaseDate(movie.getReleaseDate().toString());
+                values.putMoviePopularity(movie.getPopularity().toString());
+                values.putMovieDescription(movie.getOverview());
+                values.putMovieImageUrl(movie.getPosterPath());
+                getContext().getContentResolver().insert(PopularsColumns.CONTENT_URI, values.values());
             }
-            public void onFailure(Throwable t) {}
-        });
+
+            Call<FilmService> call2 = service.getTopRated(APY_KEY, PAGE);
+            Response<FilmService> response2 = call2.execute();
+            FilmService filmsController2 = response2.body();
+            for (Result movie : filmsController2.getResults())
+            {
+                TopratedContentValues values = new TopratedContentValues();
+                values.putMovieTitle(movie.getTitle().toString());
+                values.putMovieReleaseDate(movie.getReleaseDate().toString());
+                values.putMoviePopularity(movie.getPopularity().toString());
+                values.putMovieDescription(movie.getOverview());
+                values.putMovieImageUrl(movie.getPosterPath());
+                getContext().getContentResolver().insert(TopratedColumns.CONTENT_URI, values.values());
+            }
+        }
+        catch (IOException e) {}
     }
 
-    public void downloadTopRated()
-    {
-        Call<FilmService> call = service.getTopRated(APY_KEY, PAGE); //Fem un call en segon pla
-        call.enqueue(new Callback<FilmService>() {
-            @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-            @Override
-            public void onResponse(Response<FilmService> response, Retrofit retrofit) {
-                FilmService filmsController = response.body();
-                for (Result movie : filmsController.getResults())
-                {
-                    TopratedContentValues values = new TopratedContentValues();
-                    values.putMovieTitle(movie.getTitle().toString());
-                    values.putMovieReleaseDate(movie.getReleaseDate().toString());
-                    values.putMoviePopularity(movie.getPopularity().toString());
-                    values.putMovieDescription(movie.getOverview());
-                    values.putMovieImageUrl(movie.getPosterPath());
-                    getContext().getContentResolver().insert(TopratedColumns.CONTENT_URI, values.values());
-                }
-            }
-            public void onFailure(Throwable t) {}
-        });
-    }
     public void createRetrofit()
     {
         retrofit = new Retrofit.Builder()  //Creem el Retrofit, per ferho haurem de ficar les linees corresponents al build.gradle (Module: app)
@@ -210,7 +206,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args)
     {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         switch (preferences.getString("filmsToShow", "0"))
         {
             case "0":
@@ -231,7 +227,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                         null,
                         "_id");
             }
-            default:  return null;
+            default: return null;
         }
     }
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -288,16 +284,5 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    class UpdateAllMoviesFromInternet extends AsyncTask
-    {
-        @Override
-        protected Object doInBackground(Object[] params)
-        {
-            downloadPopulars();
-            downloadTopRated();
-            return null;
-        }
     }
 }
