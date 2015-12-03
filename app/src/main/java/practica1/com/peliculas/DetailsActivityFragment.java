@@ -15,15 +15,16 @@ import practica1.com.peliculas.provider.toprated.TopratedColumns;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailsActivityFragment extends Fragment {
+public class DetailsActivityFragment extends Fragment
+{
     TextView title;
     TextView popularity;
     TextView release;
     TextView description;
     ImageView poster;
     final private String POSTER_BASE_URL = "http://image.tmdb.org/t/p/";
-    final private String POSTER_SIZE = "w185";
-    private long itemId = -1;
+    final private String POSTER_SIZE = "w342";
+    long id = -1;
     public DetailsActivityFragment() {}
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -34,48 +35,56 @@ public class DetailsActivityFragment extends Fragment {
         description = (TextView) detailsFragment.findViewById(R.id.TVdescriptionDetails);
         poster = (ImageView) detailsFragment.findViewById(R.id.IVposterDetails);
 
-        itemId = getActivity().getIntent().getLongExtra("cursor_id", -1);
-        if (itemId != -1) {
-            cargarPelicula();
+        id = getActivity().getIntent().getLongExtra("cursor_id", -1);
+        if (id != -1)
+        {
+            cargarPelicula(detailsFragment, id);
         }
         return detailsFragment;
     }
-    private void cargarPelicula()
+    public void loadMovieFromActivity(Long id)
     {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        if (preferences.getString("filmsToShow", "0").equals("0"))
-        {
-                Cursor myCursor = getContext().getContentResolver().query(
-                        PopularsColumns.CONTENT_URI,
-                        null,
-                        PopularsColumns._ID + " = ?",
-                        new String[]{String.valueOf(itemId)},
-                        "_id");
-                if (myCursor != null) {
-                    myCursor.moveToNext();
-                    title.setText(myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_TITLE)));
-                    popularity.setText(myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_POPULARITY))+ " %");
-                    release.setText("Release Date:  " +myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_RELEASE_DATE)));
-                    description.setText("DESCRIPTION:\n" +myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_DESCRIPTION)));
-                    Picasso.with(getContext()).load(POSTER_BASE_URL + POSTER_SIZE + myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_IMAGE_URL))).fit().into(poster);
-                }
-        }
-        else if (preferences.getString("filmsToShow", "0").equals("1"))
-        {
-                Cursor myCursor = getContext().getContentResolver().query(
-                        TopratedColumns.CONTENT_URI,
-                        null,
-                        TopratedColumns._ID + " = ?",
-                        new String[]{String.valueOf(itemId)},
-                        "_id");
-                if (myCursor != null) {
-                    myCursor.moveToNext();
-                    title.setText(myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_TITLE)));
-                    popularity.setText(myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_POPULARITY))+ " %");
-                    release.setText("Release Date:  " +myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_RELEASE_DATE)));
-                    description.setText("DESCRIPTION:\n" +myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_DESCRIPTION)));
-                    Picasso.with(getContext()).load(POSTER_BASE_URL + POSTER_SIZE + myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_IMAGE_URL))).fit().into(poster);
-                }
-        }
+        View view = getView();
+        cargarPelicula(view, id);
+    }
+    private void cargarPelicula(View view, long id)
+    {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            if (preferences.getString("filmsToShow", "0").equals("0"))
+            {
+                    Cursor myCursor = getContext().getContentResolver().query(
+                            PopularsColumns.CONTENT_URI,
+                            null,
+                            PopularsColumns._ID + " = ?",
+                            new String[]{String.valueOf(id)},
+                            "_id");
+                    if (myCursor != null)
+                    {
+                        myCursor.moveToNext();
+                        title.setText(myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_TITLE)));
+                        popularity.setText(myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_POPULARITY))+ " %");
+                        release.setText("Release Date:  " +myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_RELEASE_DATE)));
+                        description.setText("DESCRIPTION:\n" +myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_DESCRIPTION)));
+                        Picasso.with(getContext()).load(POSTER_BASE_URL + POSTER_SIZE + myCursor.getString(myCursor.getColumnIndex(PopularsColumns.MOVIE_IMAGE_URL))).fit().into(poster);
+                    }
+            }
+            else if (preferences.getString("filmsToShow", "0").equals("1"))
+            {
+                    Cursor myCursor = getContext().getContentResolver().query(
+                            TopratedColumns.CONTENT_URI,
+                            null,
+                            TopratedColumns._ID + " = ?",
+                            new String[]{String.valueOf(id)},
+                            "_id");
+                    if (myCursor != null)
+                    {
+                        myCursor.moveToNext();
+                        title.setText(myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_TITLE)));
+                        popularity.setText(myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_POPULARITY))+ " %");
+                        release.setText("Release Date:  " +myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_RELEASE_DATE)));
+                        description.setText("DESCRIPTION:\n" +myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_DESCRIPTION)));
+                        Picasso.with(getContext()).load(POSTER_BASE_URL + POSTER_SIZE + myCursor.getString(myCursor.getColumnIndex(TopratedColumns.MOVIE_IMAGE_URL))).fit().into(poster);
+                    }
+            }
     }
 }

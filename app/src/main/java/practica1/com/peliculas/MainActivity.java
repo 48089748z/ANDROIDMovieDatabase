@@ -9,9 +9,26 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity implements MainActivityFragment.OnMovieSelectedListener
 {
     public Toolbar toolbar;
+
+    public void onMovieSelected(long id)
+    {
+        boolean tablet = getResources().getBoolean(R.bool.tablet);
+        if (tablet)
+        {
+            DetailsActivityFragment detailFragment = (DetailsActivityFragment)
+                    getSupportFragmentManager().findFragmentById(R.id.detailFragment);
+                    detailFragment.loadMovieFromActivity(id);
+        }
+        else
+        {
+            Intent detailsActivity = new Intent(this, DetailsActivity.class);
+            detailsActivity.putExtra("cursor_id", id);
+            startActivity(detailsActivity);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

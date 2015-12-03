@@ -1,6 +1,7 @@
 package practica1.com.peliculas;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -37,7 +38,6 @@ import retrofit.Response;
 import retrofit.Retrofit;
 import retrofit.http.GET;
 import retrofit.http.Query;
-
 /**
  * A placeholder fragment containing a simple view.
  */
@@ -56,6 +56,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private Retrofit retrofit;
     private Integer PAGE = 1;
     private SharedPreferences preferences;
+
+    private OnMovieSelectedListener listener;
     //FULL LINK POPULARS PAGE 2:     http://api.themoviedb.org/3/movie/popular?api_key=db94687026da4c4526fdd35d2e7b2f10&page=2
     //FULL LINK POPULARS:     http://api.themoviedb.org/3/movie/popular?api_key=db94687026da4c4526fdd35d2e7b2f10
     //FULL LINK TOP RATED LINK:   http://api.themoviedb.org/3/movie/top_rated?api_key=db94687026da4c4526fdd35d2e7b2f10
@@ -100,21 +102,16 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         myGrid = (GridView) mainFragment.findViewById(R.id.GVmyGrid);
         myGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
-                detailsActivity.putExtra("cursor_id", id);
-                startActivity(detailsActivity);}});
+                listener.onMovieSelected(id);
+            }});
 
         //ListViewAdapter = new FilmListViewAdapter(getContext(), 0, items);
         //myList.setAdapter(ListViewAdapter);
         myList = (ListView) mainFragment.findViewById(R.id.LVmyList);
         myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent detailsActivity = new Intent(getContext(), DetailsActivity.class);
-                detailsActivity.putExtra("cursor_id", id);
-                startActivity(detailsActivity);
-            }
-        });
+                listener.onMovieSelected(id);
+            }});
 
         GridViewDBAdapter = new DBGridViewAdapter(
                 getContext(),
@@ -284,5 +281,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         }
         return super.onOptionsItemSelected(item);
+    }
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+        listener = (OnMovieSelectedListener) context;
+
+    }
+    public interface OnMovieSelectedListener
+    {
+        void onMovieSelected(long id);
     }
 }
